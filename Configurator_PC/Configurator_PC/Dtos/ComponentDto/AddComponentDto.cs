@@ -1,4 +1,4 @@
-﻿namespace Configurator_PC.Dtos.ComponentDto
+﻿namespace Configurator_PC.Dtos
 {
     public class AddComponentDto
     {

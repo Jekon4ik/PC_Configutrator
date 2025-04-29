@@ -1,4 +1,7 @@
-﻿using Configurator_PC.Data;
+﻿using AutoMapper;
+using Configurator_PC.Data;
+using Configurator_PC.Dtos;
+using Configurator_PC.Interfaces;
 using Configurator_PC.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,40 +13,38 @@ namespace Configurator_PC.Controllers
     [ApiController]
     public class ComponentsController : ControllerBase
     {
-        private readonly DataContext _dataContext;
-        public ComponentsController(DataContext dataContext) 
-        { 
-            _dataContext = dataContext;
+        private readonly IComponentRepository _componentRepository;
+        private readonly IMapper _mapper;
+
+        public ComponentsController(IComponentRepository componentRepository, IMapper mapper)
+        {
+            _componentRepository = componentRepository;
+            _mapper = mapper;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Component>>> GetComponents()
+        public IActionResult GetComponents()
         {
-            return await _dataContext.Components
-                .Include(c => c.Type)
-                .Include(c => c.Parameters)
-                .Include(c => c.ConfigurationComponents)
-                .ToListAsync();       
+            var components = _mapper.Map<List<ComponentDto>>(_componentRepository.GetComponents());
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            return Ok(components);
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Component>> GetComponent(int id)
+        [HttpGet("{componentId}")]
+        public IActionResult GetComponent(int componentId) 
         {
-            var component = await _dataContext.Components.FindAsync(id);
-            if (component == null)
-            {
+            if(!_componentRepository.ComponentExist(componentId))
                 return NotFound();
-            }
-            return component;
+            var component = _mapper.Map<ComponentDto>(_componentRepository.GetComponent(componentId));
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            return Ok(component);
         }
 
-        [HttpPost]
-        public async Task<ActionResult<Component>> PostComponent(Component component)
-        {
-            _dataContext.Components.Add(component);
-            await _dataContext.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetComponent), new { id = component.Id }, component);
-        }
+       
 
     }   
 }

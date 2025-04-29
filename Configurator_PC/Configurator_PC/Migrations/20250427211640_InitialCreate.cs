@@ -72,7 +72,7 @@ namespace Configurator_PC.Migrations
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "text", nullable: false),
                     TypeId = table.Column<int>(type: "integer", nullable: false),
-                    Price = table.Column<decimal>(type: "numeric", nullable: true),
+                    Price = table.Column<decimal>(type: "numeric", nullable: false),
                     ImageUrl = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>

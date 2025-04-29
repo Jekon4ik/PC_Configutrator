@@ -4,11 +4,11 @@ using Configurator_PC.Models;
 
 namespace Configurator_PC.Profiles
 {
-    public class ConfigurationProfile : Profile
+    public class ComponentProfile : Profile
     {
-        public ConfigurationProfile()
+        public ComponentProfile()
         {
-            CreateMap<Configuration, ConfigurationDto>();
+            CreateMap<Component, ComponentDto>();
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace Configurator_PC.Dtos.ConfigurationDto
+﻿namespace Configurator_PC.Dtos
 {
     public class CreateConfigurationDto
     {

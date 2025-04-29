@@ -73,7 +73,7 @@ namespace Configurator_PC.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal?>("Price")
+                    b.Property<decimal>("Price")
                         .HasColumnType("numeric");
 
                     b.Property<int>("TypeId")

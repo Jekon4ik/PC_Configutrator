@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Configurator_PC.Migrations
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20250425184945_InitialCreate")]
+    [Migration("20250427211640_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -76,7 +76,7 @@ namespace Configurator_PC.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<decimal?>("Price")
+                    b.Property<decimal>("Price")
                         .HasColumnType("numeric");
 
                     b.Property<int>("TypeId")

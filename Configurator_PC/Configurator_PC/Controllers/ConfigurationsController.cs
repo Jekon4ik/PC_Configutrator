@@ -1,9 +1,12 @@
 ﻿using AutoMapper;
 using Configurator_PC.Data;
-using Configurator_PC.Dtos.ConfigurationDto;
+using Configurator_PC.Dtos;
+using Configurator_PC.Interfaces;
 using Configurator_PC.Models;
+using Configurator_PC.Repository;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace Configurator_PC.Controllers
 {
@@ -11,159 +14,82 @@ namespace Configurator_PC.Controllers
     [ApiController]
     public class ConfigurationsController : ControllerBase
     {
-        private readonly DataContext _context;
+        private readonly IConfigurationRepository _configurationRepository;
         private readonly IMapper _mapper;
 
-        public ConfigurationsController(DataContext context, IMapper mapper)
+        public ConfigurationsController(IConfigurationRepository configurationRepository, IMapper mapper)
         {
-            _context = context;
+            _configurationRepository = configurationRepository;
             _mapper = mapper;
         }
 
-        [HttpPost]
-        public async Task<ActionResult<CreateConfigurationDto>> CreateConfiguration(CreateConfigurationDto dto)
+        [HttpGet]
+        public IActionResult GetConfigurations()
         {
-            if (string.IsNullOrWhiteSpace(dto.Name))
-            {
-                return BadRequest("Configuration name is required.");
-            }
-            var config = new Configuration { Name = dto.Name };
-            _context.Configurations.Add(config);
-            await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(CreateConfiguration), new { id = config.Id }, _mapper.Map<Configuration>(config));
+            var configurations = _mapper.Map<List<ConfigurationDto>>(_configurationRepository.GetConfigurations());
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            return Ok(configurations);
+        }
+        
+        [HttpGet("{configurationId}")]
+        public IActionResult GetConfiguration(int configurationId)
+        {
+            if(!_configurationRepository.ConfigurationExist(configurationId))
+                return NotFound();
+
+            var configuration = _mapper.Map<ConfigurationDto>(_configurationRepository.GetConfiguration(configurationId));
+            if(!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            return Ok(configuration);
         }
 
-        [HttpGet("{configurationId}/available-components/{typeId}")]
-        public async Task<ActionResult<List<Component>>> GetAvailableComponents(int configurationId, int typeId)
+        [HttpGet("Components/{configurationId}")]
+        public IActionResult GetComponents(int configurationId)
         {
-            var selectedComponentIds = await _context.ConfigurationComponents
-                .Where(cc => cc.ConfigurationId == configurationId)
-                .Select(cc => cc.ComponentId)
-                .ToListAsync();
+            var configurationComponents = _mapper.Map<List<ComponentDto>>(
+                _configurationRepository.GetComponents(configurationId));
 
-            List<Component> availableComponents;
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
-            if (!selectedComponentIds.Any())
-            {
-                availableComponents = await _context.Components
-                    .Where(c => c.TypeId == typeId)
-                    .ToListAsync();
-            }
-            else
-            {
-                availableComponents = await _context.Components
-                    .Where(c => c.TypeId == typeId)
-                    .Where(c => _context.Compatibilities
-                        .Any(comp => selectedComponentIds.Contains(comp.Component1Id) &&
-                                     comp.IsCompatible == true &&
-                                     comp.Component2Id == c.Id))
-                    .ToListAsync();
-            }
-
-            return Ok(availableComponents);
+            return Ok(configurationComponents);
         }
 
-        [HttpGet("{configurationId}/components")]
-        public async Task<ActionResult<List<Component>>> GetComponentsInConfiguration(int configurationId)
+        [HttpGet("{configurationId}/SuitableComponentsByType/{typeId}")]
+        public IActionResult GetSuitableComponentsByType(int configurationId, int typeId)
         {
-            var configurationResult = await GetConfigurationById(configurationId);
-            if (configurationResult.Result is NotFoundObjectResult)
-            {
-                return NotFound($"Configuration with ID {configurationId} not found.");
-            }
-
-            var components = await _context.ConfigurationComponents
-                .Where(cc => cc.ConfigurationId == configurationId)
-                .Select(cc => cc.Component)
-                .ToListAsync();
-
-            if (components == null || !components.Any())
-            {
-                return NotFound($"No components found for configuration with ID {configurationId}.");
-            }
+            var components = _mapper.Map<List<ComponentDto>>(_configurationRepository
+                .GetSuitableComponentsByType(configurationId, typeId));
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
             return Ok(components);
         }
 
-        [HttpGet]
-        public async Task<ActionResult<List<Configuration>>> GetAllConfigurations()
+        [HttpPost("{configurationId}/add-component/{componentId}")]
+        public async Task<IActionResult> AddComponentToConfiguration(int configurationId, int componentId)
         {
-            var configurations = await _context.Configurations.ToListAsync();
+            var result = await _configurationRepository.AddComponentToConfigurationAsync(configurationId, componentId);
 
-            if (!configurations.Any())
-            {
-                return NotFound("No configurations found.");
-            }
+            if (!result)
+                return BadRequest("Failed to add component to configuration.");
 
-            return Ok(configurations);
+            return Ok("Component added successfully.");
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Configuration>> GetConfigurationById(int id)
+        [HttpPost]
+        public async Task<IActionResult> CreateConfiguration([FromBody] string configurationName)
         {
-            var configuration = await _context.Configurations.FindAsync(id);
-
-            if (configuration == null)
+            if (string.IsNullOrWhiteSpace(configurationName))
             {
-                return NotFound($"Configuration with ID {id} not found.");
+                return BadRequest("Configuration name is required.");
             }
 
+            var configuration = await _configurationRepository.CreateConfigurationAsync(configurationName);
             return Ok(configuration);
-        }
-        
-        [HttpPost("{configurationId}/components")]
-        public async Task<ActionResult> AddComponentsToConfiguration(int configurationId, [FromBody] List<int> componentIds)
-        {
-            var configuration = await _context.Configurations.FindAsync(configurationId);
-            if (configuration == null)
-            {
-                return NotFound($"Configuration with ID {configurationId} not found.");
-            }
-
-            var existingComponents = await _context.Components
-                .Where(c => componentIds.Contains(c.Id))
-                .Select(c => c.Id)
-                .ToListAsync();
-
-            var invalidComponentIds = componentIds.Except(existingComponents).ToList();
-            if (invalidComponentIds.Any())
-            {
-                return BadRequest($"The following component IDs are invalid: {string.Join(", ", invalidComponentIds)}");
-            }
-
-            var addedComponentIds = await _context.ConfigurationComponents
-                .Where(cc => cc.ConfigurationId == configurationId)
-                .Select(cc => cc.ComponentId)
-                .ToListAsync();
-
-            var incompatibleComponents = new List<int>();
-            foreach (var newComponentId in componentIds)
-            {
-                var isCompatible = await _context.Compatibilities
-                    .Where(comp => addedComponentIds.Contains(comp.Component1Id) && comp.Component2Id == newComponentId)
-                    .AllAsync(comp => comp.IsCompatible == true);
-
-                if (!isCompatible)
-                {
-                    incompatibleComponents.Add(newComponentId);
-                }
-            }
-
-            if (incompatibleComponents.Any())
-            {
-                return BadRequest($"The following components are incompatible with the configuration: {string.Join(", ", incompatibleComponents)}");
-            }
-
-            var configurationComponents = componentIds.Select(componentId => new ConfigurationComponent
-            {
-                ConfigurationId = configurationId,
-                ComponentId = componentId
-            });
-
-            _context.ConfigurationComponents.AddRange(configurationComponents);
-            await _context.SaveChangesAsync();
-
-            return Ok($"Components successfully added to configuration with ID {configurationId}.");
         }
 
     }
