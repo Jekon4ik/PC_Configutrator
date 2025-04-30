@@ -53,13 +53,25 @@ namespace Configurator_PC.Repository
         {
             var configuration = new Configuration
             {
-                Name = configurationName
+                Name = configurationName,
+                UserId = null
             };
 
             _dbContext.Configurations.Add(configuration);
             await _dbContext.SaveChangesAsync();
 
             return configuration;
+        }
+
+        public bool CreateConfigurationForUser(string configurationName,int userId)
+        {
+            var configuration = new Configuration
+            {
+                Name = configurationName,
+                UserId = userId
+            };
+            _dbContext.Configurations.Add(configuration);
+            return Save();
         }
 
         public ICollection<Component> GetComponents(int configurationId)
@@ -88,44 +100,86 @@ namespace Configurator_PC.Repository
 
         public ICollection<Component> GetSuitableComponentsByType(int configurationId, int typeId)
         {
-            // Get all component IDs currently in the configuration
-            var configurationComponentIds = _dbContext.ConfigurationComponents
-                .Where(cc => cc.ConfigurationId == configurationId)
-                .Select(cc => cc.ComponentId)
-                .ToList();
+            var existingComponents = _dbContext.ConfigurationComponents
+                    .Where(cc => cc.ConfigurationId == configurationId)
+                    .Include(cc => cc.Component)
+                        .ThenInclude(c => c.Type)
+                    .Include(cc => cc.Component)
+                        .ThenInclude(c => c.Parameters)
+                            .ThenInclude(cp => cp.ParameterName)
+                    .Select(cc => cc.Component!)
+                    .ToList();
 
-            // Get all components of the requested type
+            if (!existingComponents.Any())
+            {
+                return _dbContext.Components
+                    .Where(c => c.TypeId == typeId)
+                    .Include(c => c.Parameters)
+                    .ToList();
+            }
+
             var candidateComponents = _dbContext.Components
                 .Where(c => c.TypeId == typeId)
+                .Include(c => c.Parameters)
+                    .ThenInclude(cp => cp.ParameterName)
                 .ToList();
 
-            var suitableComponents = new List<Component>();
+            var compatibleComponents = new List<Component>();
 
             foreach (var candidate in candidateComponents)
             {
-                bool isCompatibleWithAll = true;
+                bool isCompatible = true;
 
-                foreach (var existingComponentId in configurationComponentIds)
+                foreach (var existing in existingComponents)
                 {
-                    // Check compatibility in both directions
-                    var compatibility = _dbContext.Compatibilities.FirstOrDefault(comp =>
-                        (comp.Component1Id == candidate.Id && comp.Component2Id == existingComponentId) ||
-                        (comp.Component2Id == candidate.Id && comp.Component1Id == existingComponentId));
+                    var rules = _dbContext.CompatibilityRules
+                        .Where(r =>
+                            (r.ComponentType1Id == existing.TypeId && r.ComponentType2Id == typeId) ||
+                            (r.ComponentType2Id == existing.TypeId && r.ComponentType1Id == typeId))
+                        .Include(r => r.ParameterName)
+                        .ToList();
 
-                    if (compatibility != null && compatibility.IsCompatible == false)
+                    foreach (var rule in rules)
                     {
-                        isCompatibleWithAll = false;
-                        break;
+                        var paramNameId = rule.ParameterNameId;
+
+                        var existingParam = existing.Parameters?.FirstOrDefault(p => p.ParameterNameId == paramNameId);
+                        var candidateParam = candidate.Parameters?.FirstOrDefault(p => p.ParameterNameId == paramNameId);
+
+                        if (existingParam == null || candidateParam == null)
+                        {
+                            isCompatible = false;
+                            break;
+                        }
+
+                        switch (rule.Operator)
+                        {
+                            case "=":
+                                if (existingParam.Value != candidateParam.Value)
+                                {
+                                    isCompatible = false;
+                                }
+                                break;
+                            default:
+                                isCompatible = false;
+                                break;
+                        }
+
+                        if (!isCompatible)
+                            break;
                     }
+
+                    if (!isCompatible)
+                        break;
                 }
 
-                if (isCompatibleWithAll)
+                if (isCompatible)
                 {
-                    suitableComponents.Add(candidate);
+                    compatibleComponents.Add(candidate);
                 }
             }
 
-            return suitableComponents;
+            return compatibleComponents;
         }
 
         public bool Save()

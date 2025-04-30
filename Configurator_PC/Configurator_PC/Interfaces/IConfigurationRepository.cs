@@ -13,5 +13,6 @@ namespace Configurator_PC.Interfaces
         Task<bool> AddComponentToConfigurationAsync(int configurationId, int componentId);
         bool Save();
         Task<Configuration> CreateConfigurationAsync(string configurationName);
+        bool CreateConfigurationForUser(string configurationName, int userId);
     }
 }

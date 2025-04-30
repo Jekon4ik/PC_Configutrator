@@ -92,5 +92,14 @@ namespace Configurator_PC.Controllers
             return Ok(configuration);
         }
 
+        [HttpPost("/{userId}")]
+        public IActionResult CreateConfigurationForUser([FromBody] string configurationName)
+        {
+            if (!string.IsNullOrWhiteSpace(configurationName))
+                return BadRequest("Configuration name is required.");
+
+            throw new NotImplementedException();
+        }
+
     }
 }

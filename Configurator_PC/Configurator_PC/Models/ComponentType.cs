@@ -7,5 +7,8 @@
 
         public ICollection<Component>? Components { get; set; }
         public ICollection<ComponentTypeParameterName>? AllowedParameterNames { get; set; }
+
+        public ICollection<CompatibilityRule>? RulesAsType1 { get; set; }
+        public ICollection<CompatibilityRule>? RulesAsType2 { get; set; }
     }
 }

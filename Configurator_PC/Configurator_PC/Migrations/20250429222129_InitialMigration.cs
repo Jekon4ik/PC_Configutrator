@@ -6,7 +6,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Configurator_PC.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -22,19 +22,6 @@ namespace Configurator_PC.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_component_types", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "configurations",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Name = table.Column<string>(type: "text", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_configurations", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -57,7 +44,7 @@ namespace Configurator_PC.Migrations
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Login = table.Column<string>(type: "text", nullable: false),
-                    Password = table.Column<int>(type: "integer", nullable: false)
+                    Password = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -87,6 +74,40 @@ namespace Configurator_PC.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "compatibility_rules",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ComponentType1Id = table.Column<int>(type: "integer", nullable: false),
+                    ComponentType2Id = table.Column<int>(type: "integer", nullable: false),
+                    ParameterNameId = table.Column<int>(type: "integer", nullable: false),
+                    Operator = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_compatibility_rules", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_compatibility_rules_component_types_ComponentType1Id",
+                        column: x => x.ComponentType1Id,
+                        principalTable: "component_types",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_compatibility_rules_component_types_ComponentType2Id",
+                        column: x => x.ComponentType2Id,
+                        principalTable: "component_types",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_compatibility_rules_parameter_names_ParameterNameId",
+                        column: x => x.ParameterNameId,
+                        principalTable: "parameter_names",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "component_type_parameter_names",
                 columns: table => new
                 {
@@ -113,35 +134,46 @@ namespace Configurator_PC.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "compatibility",
+                name: "configurations",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    Component1Id = table.Column<int>(type: "integer", nullable: false),
-                    Component2Id = table.Column<int>(type: "integer", nullable: false),
-                    ParameterNameId = table.Column<int>(type: "integer", nullable: false),
-                    Value1 = table.Column<string>(type: "text", nullable: true),
-                    Value2 = table.Column<string>(type: "text", nullable: true),
-                    IsCompatible = table.Column<bool>(type: "boolean", nullable: true)
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    UserId = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_compatibility", x => x.Id);
+                    table.PrimaryKey("PK_configurations", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_compatibility_components_Component1Id",
-                        column: x => x.Component1Id,
+                        name: "FK_configurations_users_UserId",
+                        column: x => x.UserId,
+                        principalTable: "users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "parameters",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    ComponentId = table.Column<int>(type: "integer", nullable: false),
+                    ParameterNameId = table.Column<int>(type: "integer", nullable: false),
+                    Value = table.Column<string>(type: "text", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_parameters", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_parameters_components_ComponentId",
+                        column: x => x.ComponentId,
                         principalTable: "components",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_compatibility_components_Component2Id",
-                        column: x => x.Component2Id,
-                        principalTable: "components",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_compatibility_parameter_names_ParameterNameId",
+                        name: "FK_parameters_parameter_names_ParameterNameId",
                         column: x => x.ParameterNameId,
                         principalTable: "parameter_names",
                         principalColumn: "Id",
@@ -174,46 +206,19 @@ namespace Configurator_PC.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "parameters",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "integer", nullable: false)
-                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
-                    ComponentId = table.Column<int>(type: "integer", nullable: false),
-                    ParameterNameId = table.Column<int>(type: "integer", nullable: false),
-                    Value = table.Column<string>(type: "text", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_parameters", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_parameters_components_ComponentId",
-                        column: x => x.ComponentId,
-                        principalTable: "components",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_parameters_parameter_names_ParameterNameId",
-                        column: x => x.ParameterNameId,
-                        principalTable: "parameter_names",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
+            migrationBuilder.CreateIndex(
+                name: "IX_compatibility_rules_ComponentType1Id",
+                table: "compatibility_rules",
+                column: "ComponentType1Id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_compatibility_Component1Id",
-                table: "compatibility",
-                column: "Component1Id");
+                name: "IX_compatibility_rules_ComponentType2Id",
+                table: "compatibility_rules",
+                column: "ComponentType2Id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_compatibility_Component2Id",
-                table: "compatibility",
-                column: "Component2Id");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_compatibility_ParameterNameId",
-                table: "compatibility",
+                name: "IX_compatibility_rules_ParameterNameId",
+                table: "compatibility_rules",
                 column: "ParameterNameId");
 
             migrationBuilder.CreateIndex(
@@ -242,6 +247,11 @@ namespace Configurator_PC.Migrations
                 column: "ConfigurationId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_configurations_UserId",
+                table: "configurations",
+                column: "UserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_parameters_ComponentId",
                 table: "parameters",
                 column: "ComponentId");
@@ -256,7 +266,7 @@ namespace Configurator_PC.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "compatibility");
+                name: "compatibility_rules");
 
             migrationBuilder.DropTable(
                 name: "component_type_parameter_names");
@@ -268,9 +278,6 @@ namespace Configurator_PC.Migrations
                 name: "parameters");
 
             migrationBuilder.DropTable(
-                name: "users");
-
-            migrationBuilder.DropTable(
                 name: "configurations");
 
             migrationBuilder.DropTable(
@@ -278,6 +285,9 @@ namespace Configurator_PC.Migrations
 
             migrationBuilder.DropTable(
                 name: "parameter_names");
+
+            migrationBuilder.DropTable(
+                name: "users");
 
             migrationBuilder.DropTable(
                 name: "component_types");

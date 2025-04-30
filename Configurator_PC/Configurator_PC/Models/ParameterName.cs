@@ -7,6 +7,6 @@
 
         public ICollection<ComponentParameter>? ComponentParameters { get; set; }
         public ICollection<ComponentTypeParameterName>? ComponentTypeLinks { get; set; }
-        public ICollection<Compatibility>? Compatibilities { get; set; }
+        public ICollection<CompatibilityRule>? CompatibilityRules { get; set; }
     }
 }
