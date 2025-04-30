@@ -11,8 +11,9 @@ namespace Configurator_PC.Interfaces
         ICollection<Component> GetSuitableComponentsByType(int configurationId, int typeId);
         ICollection<Component> GetComponents(int id);
         Task<bool> AddComponentToConfigurationAsync(int configurationId, int componentId);
-        bool Save();
         Task<Configuration> CreateConfigurationAsync(string configurationName);
         bool CreateConfigurationForUser(string configurationName, int userId);
+        bool DeleteConfiguration(Configuration configuration);
+        bool Save();
     }
 }

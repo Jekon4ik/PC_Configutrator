@@ -182,10 +182,22 @@ namespace Configurator_PC.Repository
             return compatibleComponents;
         }
 
+        bool DeleteConfiguration(Configuration configuration)
+        {
+            _dbContext.Configurations.Remove(configuration);
+            _dbContext.ConfigurationComponents
+                .RemoveRange(_dbContext.ConfigurationComponents.Where(cc => cc.ConfigurationId == configuration.Id));
+            return Save();
+        }
         public bool Save()
         {
             var saved = _dbContext.SaveChanges();
             return saved > 0 ? true : false;
+        }
+
+        bool IConfigurationRepository.DeleteConfiguration(Configuration configuration)
+        {
+            return DeleteConfiguration(configuration);
         }
     }
 }

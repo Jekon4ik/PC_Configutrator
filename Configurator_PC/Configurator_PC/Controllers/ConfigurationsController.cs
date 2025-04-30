@@ -32,15 +32,15 @@ namespace Configurator_PC.Controllers
 
             return Ok(configurations);
         }
-        
+
         [HttpGet("{configurationId}")]
         public IActionResult GetConfiguration(int configurationId)
         {
-            if(!_configurationRepository.ConfigurationExist(configurationId))
+            if (!_configurationRepository.ConfigurationExist(configurationId))
                 return NotFound();
 
             var configuration = _mapper.Map<ConfigurationDto>(_configurationRepository.GetConfiguration(configurationId));
-            if(!ModelState.IsValid)
+            if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             return Ok(configuration);
@@ -101,5 +101,19 @@ namespace Configurator_PC.Controllers
             throw new NotImplementedException();
         }
 
+        [HttpDelete("{configurationId}")]
+        public IActionResult DeleteConfiguration(int configurationId)
+        {
+            var configuration = _configurationRepository.GetConfiguration(configurationId);
+            if (configuration == null)
+                return NotFound();
+            if (!_configurationRepository.DeleteConfiguration(configuration))
+            {
+                ModelState.AddModelError("", "Failed to delete configuration.");
+                return StatusCode(500, ModelState);
+            }
+            return NoContent();
+
+        }
     }
 }
