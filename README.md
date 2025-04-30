@@ -1,15 +1,16 @@
 # PC_Configutrator
 
 In the database, each PC component type is represented by an Id in the ComponentType table. Here's the mapping:
-    ID	Component Type
-    1	Motherboard
-    2	CPU
-    3	RAM
-    4	GPU
-    5	Storage
-    6	PSU
-    7	Case
-    8	CPU Cooler
+|ID	|Component Type|
+|---|--------------|
+|1	|Motherboard|
+|2	|CPU|
+|3	|RAM|
+|4	|GPU|
+|5	|Storage|
+|6	|PSU|
+|7	|Case|
+|8	|CPU Cooler|
 
 This table maps each DTO property to its corresponding logical parameter name and its suggested ParameterNameId (used in the database):
 | DTO Property              | Logical Parameter Name      |        `ParameterNameId`     |
@@ -39,47 +40,17 @@ This table maps each DTO property to its corresponding logical parameter name an
 | `PowerSupply` (GPU)       | gpu_power_required          | 19                           |
 | `Wattage`                 | psu_wattage                 | 20                           |
 | `MaxLength`               | gpu_max_length              | 21                           |
-|---------------------------|-----------------------------|------------------------------|
+
 
 ##  Compatibility Rules
 
-Below are the basic rules that ensure selected components are compatible with each other in the PC configuration:
-
----
-
-### CPU and Motherboard Socket Compatibility  
-The **CPU** and **Motherboard** must have the same `socket` value.  
-
-
----
-
-### Cooler and CPU Socket Compatibility  
-The **CPU Cooler** must support the same `socket` type as the **CPU**.  
-
----
-
-### Motherboard and Case Form Factor Match  
-The `form_factor` of the **Motherboard** and **Case** must match (e.g., ATX, microATX).  
-
----
-
-### RAM and Motherboard Memory Type Match  
-The `memory_type` of the **RAM** must match the supported memory type of the **Motherboard** (e.g., DDR4, DDR5).  
-
----
-
-### GPU and Motherboard PCIe Interface Match  
-The `pcie_interface` of the **GPU** must match the PCIe slot type of the **Motherboard**.  
-
----
-
-### Storage Device and Motherboard Interface Match  
-The `storage_interface` (e.g., SATA, NVMe) of the **Storage** device must be supported by the **Motherboard**.  
-
----
-
-### Power Supply Wattage Meets GPU Requirement  
-The **PSU's** `psu_wattage` must be greater than or equal to the **GPU’s** `gpu_power_required`.  
-
----
-
+| Rule # | Component 1         | Component 2         | Parameter Name(s)             | ParameterNameId(s) | Operator | Description                                                                 |
+|----------|------------------------|------------------------|----------------------------------|------------------------|-------------|---------------------------------------------------------------------------------|
+| 1        | CPU (`2`)              | Motherboard (`1`)      | `socket`                         | `1`                    | `=`         | CPU and motherboard must have the same socket.                                 |
+| 2        | CPU Cooler (`8`)       | CPU (`2`)              | `socket`                         | `1`                    | `=`         | Cooler must support the same socket as the CPU.                                |
+| 3        | Motherboard (`1`)      | Case (`7`)             | `form_factor`                    | `2`                    | `=`         | Motherboard and case must support the same form factor (e.g., ATX, mATX).      |
+| 4        | RAM (`3`)              | Motherboard (`1`)      | `memory_type`                    | `3`                    | `=`         | RAM must match the memory type supported by the motherboard.                   |
+| 5        | GPU (`4`)              | Motherboard (`1`)      | `pcie_interface`                 | `15`                   | `=`         | GPU interface must match the motherboard’s PCIe slot type.                     |
+| 6        | Storage (`5`)          | Motherboard (`1`)      | `storage_interface`              | `16`                   | `=`         | Storage interface must be supported by the motherboard (e.g., SATA, NVMe).     |
+| 7        | GPU (`4`)              | PSU (`6`)              | `gpu_power_required` vs `psu_wattage` | `19` vs `20`      | `<=`        | PSU must provide enough power for the GPU.                                     |
+| 8        | GPU (`4`)              | Case (`7`)             | `gpu_max_length`                 | `21`                   | `>=`        | Case must support the physical length of the GPU.                              |
