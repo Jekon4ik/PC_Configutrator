@@ -39,6 +39,8 @@ app.UseCors("AllowAll");
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<DataContext>();
+    DbTypesParametersSeeder.Seed(db);
+    DbCompatibilityRuleSeeder.Seed(db);
     DbSeeder.Seed(db);
 }
 

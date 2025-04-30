@@ -1,6 +1,7 @@
-﻿namespace Configurator_PC.Dtos.ComponentDto
+﻿namespace Configurator_PC.Dtos
 {
-    public class CoolerDto
+    public class CoolerDto : ComponentDto
     {
+        public string SupportedSocket { get; set; } = string.Empty;
     }
 }
