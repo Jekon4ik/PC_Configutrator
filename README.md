@@ -19,8 +19,7 @@ This table maps each DTO property to its corresponding logical parameter name an
 | `SupportedSocket` (Cooler)| socket                      | 1                            |
 | `FormFactor` (Motherboard)| form_factor                 | 2                            |
 | `FormFactor` (Case)       | form_factor                 | 2                            |
-| `SupportedMemoryType`     | memory_type                 | 3                            |
-|     (Motherboard)         |                             |                              |
+| `SupportedMemoryType` (Motherboard)  | memory_type                 | 3                            |
 | `MemtoryType` (RAM)       | memory_type                 | 3                            |
 | `MemorySlots`             | memory_slots                | 4                            |
 | `M2Slots`                 | m2_slots                    | 5                            |
