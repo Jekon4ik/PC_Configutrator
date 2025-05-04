@@ -93,12 +93,12 @@ namespace Configurator_PC.Controllers
         }
 
         [HttpPost("{userId}")]
-        public IActionResult CreateConfigurationForUser([FromBody] string configurationName)
+        public IActionResult CreateConfigurationForUser([FromBody] string configurationName, int userId)
         {
-            if (!string.IsNullOrWhiteSpace(configurationName))
+            if (string.IsNullOrWhiteSpace(configurationName))
                 return BadRequest("Configuration name is required.");
-
-            throw new NotImplementedException();
+            var configuration = _configurationRepository.CreateConfigurationForUser(configurationName,userId);
+            return Ok(configuration);
         }
 
         [HttpDelete("{configurationId}")]

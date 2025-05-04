@@ -13,6 +13,7 @@ builder.Services.AddScoped<IComponentRepository, ComponentRepository>();
 builder.Services.AddScoped<IConfigurationRepository, ConfigurationRepository>();
 builder.Services.AddScoped<IComponentTypeRepository, ComponentTypeRepository>();
 builder.Services.AddScoped<IComponentParameterRepository, ComponentParameterRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -35,6 +36,11 @@ builder.Services.AddCors(options =>
 });
 //builder.WebHost.UseUrls("http://0.0.0.0:5000", "https://0.0.0.0:5001");
 var app = builder.Build();
+if (app.Environment.IsDevelopment() || app.Environment.IsStaging() || app.Environment.IsProduction())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 app.UseCors("AllowAll");
 using (var scope = app.Services.CreateScope())
 {
@@ -44,11 +50,6 @@ using (var scope = app.Services.CreateScope())
     DbSeeder.Seed(db);
 }
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
 
 app.UseHttpsRedirection();
 

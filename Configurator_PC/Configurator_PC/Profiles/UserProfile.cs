@@ -4,11 +4,11 @@ using Configurator_PC.Models;
 
 namespace Configurator_PC.Profiles
 {
-    public class ConfigurationProfile : Profile
+    public class UserProfile : Profile
     {
-        public ConfigurationProfile()
+        public UserProfile()
         {
-            CreateMap<Configuration, ConfigurationDto>().ReverseMap();
+            CreateMap<User, UserDto>().ReverseMap();
         }
     }
 }
