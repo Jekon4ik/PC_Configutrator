@@ -125,7 +125,7 @@ namespace Configurator_PC.Repository
                 .ToList();
 
             var compatibleComponents = new List<Component>();
-
+      
             foreach (var candidate in candidateComponents)
             {
                 bool isCompatible = true;
@@ -143,9 +143,18 @@ namespace Configurator_PC.Repository
                     {
                         var paramNameId = rule.ParameterNameId;
 
+                        Console.WriteLine($"param name id: {paramNameId}");
                         var existingParam = existing.Parameters?.FirstOrDefault(p => p.ParameterNameId == paramNameId);
                         var candidateParam = candidate.Parameters?.FirstOrDefault(p => p.ParameterNameId == paramNameId);
-
+                        Console.WriteLine($"existingParam: {existingParam}");
+                        if (existingParam == null)
+                        {
+                            existingParam = existing.Parameters?.FirstOrDefault(p => p.ParameterNameId == 20);                       
+                        }
+                        else if (candidateParam == null)
+                        {
+                            candidateParam = candidate.Parameters?.FirstOrDefault(p => p.ParameterNameId == 20);
+                        }
                         if (existingParam == null || candidateParam == null)
                         {
                             isCompatible = false;
@@ -160,6 +169,23 @@ namespace Configurator_PC.Repository
                                     isCompatible = false;
                                 }
                                 break;
+                            case ">=":
+                                Console.WriteLine("Lets debugg this shit!");
+                                if (existingParam.ParameterNameId == 19)
+                                {
+                                    if(Convert.ToInt16(existingParam.Value) >= Convert.ToInt16(candidateParam.Value))
+                                    {
+                                        isCompatible = false;
+                                    }
+                                }
+                                else if (existingParam.ParameterNameId == 20)
+                                {
+                                    if (Convert.ToInt16(existingParam.Value) < Convert.ToInt16(candidateParam.Value))
+                                    {
+                                        isCompatible = false;
+                                    }
+                                }
+                                    break;
                             default:
                                 isCompatible = false;
                                 break;
