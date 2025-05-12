@@ -8,7 +8,12 @@ namespace Configurator_PC.Profiles
     {
         public ConfigurationProfile()
         {
-            CreateMap<Configuration, ConfigurationDto>().ReverseMap();
+            CreateMap<Configuration, ConfigurationDto>()
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
+                .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForSourceMember(src => src.ConfigurationComponents, opt => opt.DoNotValidate());
+            CreateMap<ConfigurationDto, Configuration>();
         }
     }
 }

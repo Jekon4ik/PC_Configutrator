@@ -61,7 +61,7 @@ namespace Configurator_PC.Controllers
             if(!_userRepository.UserExist(userId))
                 return NotFound();
 
-            var configurations = _userRepository.GetConfugirations(userId);
+            var configurations = _mapper.Map<List<ConfigurationDto>>(_userRepository.GetConfugirations(userId));
             if (configurations == null)
                 return NotFound($"No configurations found for user ID {userId}.");
 
