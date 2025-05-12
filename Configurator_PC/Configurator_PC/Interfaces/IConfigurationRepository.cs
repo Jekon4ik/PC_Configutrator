@@ -14,6 +14,7 @@ namespace Configurator_PC.Interfaces
         Task<Configuration> CreateConfigurationAsync(string configurationName);
         bool CreateConfigurationForUser(string configurationName, int userId);
         bool DeleteConfiguration(Configuration configuration);
+        bool DeleteComponentFromConfiguration(int configurationId, int componentTypeId);
         bool Save();
     }
 }

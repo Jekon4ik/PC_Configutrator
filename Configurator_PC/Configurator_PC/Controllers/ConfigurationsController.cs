@@ -115,5 +115,20 @@ namespace Configurator_PC.Controllers
             return NoContent();
 
         }
+
+        [HttpDelete("{configurationId}/Component/{componentTypeId}")]
+        public IActionResult DeleteConfiguration(int configurationId, int componentTypeId)
+        {
+            var component = _configurationRepository.GetComponents(configurationId)
+                .Where(c=> c.TypeId == componentTypeId).FirstOrDefault();
+            if (component == null)
+                return NotFound();
+            if(!_configurationRepository.DeleteComponentFromConfiguration(configurationId, componentTypeId))
+            {
+                ModelState.AddModelError("", "Failed to delete component from configuration.");
+                return StatusCode(500, ModelState);
+            }
+            return NoContent();
+        }
     }
 }

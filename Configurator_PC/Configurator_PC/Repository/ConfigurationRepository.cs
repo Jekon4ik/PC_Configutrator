@@ -194,10 +194,28 @@ namespace Configurator_PC.Repository
             var saved = _dbContext.SaveChanges();
             return saved > 0 ? true : false;
         }
-
+        
         bool IConfigurationRepository.DeleteConfiguration(Configuration configuration)
         {
             return DeleteConfiguration(configuration);
+        }
+        
+        public bool DeleteComponentFromConfiguration(int configurationId, int componentTypeId)
+        {
+            var configComponent = _dbContext.ConfigurationComponents
+                    .Include(cc => cc.Component)
+                    .FirstOrDefault(cc => 
+                    cc.ConfigurationId == configurationId && cc.Component.TypeId == componentTypeId);
+
+            if (configComponent == null)
+            {
+                return false;
+            }
+
+            _dbContext.ConfigurationComponents.Remove(configComponent);
+            
+
+            return Save();
         }
     }
 }
