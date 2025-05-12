@@ -12,7 +12,7 @@ namespace Configurator_PC.Interfaces
         ICollection<Component> GetComponents(int id);
         Task<bool> AddComponentToConfigurationAsync(int configurationId, int componentId);
         Task<Configuration> CreateConfigurationAsync(string configurationName);
-        bool CreateConfigurationForUser(string configurationName, int userId);
+        Task<Configuration> CreateConfigurationForUser(string configurationName, int userId);
         bool DeleteConfiguration(Configuration configuration);
         bool DeleteComponentFromConfiguration(int configurationId, int componentTypeId);
         bool Save();

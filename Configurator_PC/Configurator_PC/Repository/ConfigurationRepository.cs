@@ -63,7 +63,7 @@ namespace Configurator_PC.Repository
             return configuration;
         }
 
-        public bool CreateConfigurationForUser(string configurationName,int userId)
+        public async Task<Configuration> CreateConfigurationForUser(string configurationName,int userId)
         {
             var configuration = new Configuration
             {
@@ -71,7 +71,8 @@ namespace Configurator_PC.Repository
                 UserId = userId
             };
             _dbContext.Configurations.Add(configuration);
-            return Save();
+            await _dbContext.SaveChangesAsync();
+            return configuration;
         }
 
         public ICollection<Component> GetComponents(int configurationId)
@@ -143,10 +144,8 @@ namespace Configurator_PC.Repository
                     {
                         var paramNameId = rule.ParameterNameId;
 
-                        Console.WriteLine($"param name id: {paramNameId}");
                         var existingParam = existing.Parameters?.FirstOrDefault(p => p.ParameterNameId == paramNameId);
                         var candidateParam = candidate.Parameters?.FirstOrDefault(p => p.ParameterNameId == paramNameId);
-                        Console.WriteLine($"existingParam: {existingParam}");
                         if (existingParam == null)
                         {
                             existingParam = existing.Parameters?.FirstOrDefault(p => p.ParameterNameId == 20);                       
@@ -170,7 +169,6 @@ namespace Configurator_PC.Repository
                                 }
                                 break;
                             case ">=":
-                                Console.WriteLine("Lets debugg this shit!");
                                 if (existingParam.ParameterNameId == 19)
                                 {
                                     if(Convert.ToInt16(existingParam.Value) >= Convert.ToInt16(candidateParam.Value))

@@ -93,11 +93,12 @@ namespace Configurator_PC.Controllers
         }
 
         [HttpPost("{userId}")]
-        public IActionResult CreateConfigurationForUser([FromBody] string configurationName, int userId)
+        public async Task<IActionResult> CreateConfigurationForUser([FromBody] string configurationName, int userId)
         {
             if (string.IsNullOrWhiteSpace(configurationName))
                 return BadRequest("Configuration name is required.");
-            var configuration = _configurationRepository.CreateConfigurationForUser(configurationName,userId);
+
+            var configuration = await _configurationRepository.CreateConfigurationForUser(configurationName,userId);
             return Ok(configuration);
         }
 
