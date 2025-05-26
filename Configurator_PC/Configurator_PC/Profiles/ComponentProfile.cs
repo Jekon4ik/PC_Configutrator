@@ -11,4 +11,27 @@ namespace Configurator_PC.Profiles
             CreateMap<Component, ComponentDto>();
         }
     }
+    public static class ComponentManualMapper
+    {
+        public static DynamicComponentDto ConvertToDynamicDto(Component component)
+        {
+            if (component == null)
+                return null;
+
+            return new DynamicComponentDto
+            {
+                Id = component.Id,
+                Name = component.Name,
+                TypeId = component.TypeId,
+                Price = component.Price,
+                ImageUrl = component.ImageUrl,
+                Parameters = component.Parameters?
+                    .Where(p => p.ParameterName != null)
+                    .ToDictionary(
+                        p => p.ParameterName!.Name,
+                        p => p.Value ?? string.Empty
+                    ) ?? new Dictionary<string, string>()
+            };
+        }
+    }
 }

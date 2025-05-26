@@ -3,9 +3,11 @@ using Configurator_PC.Data;
 using Configurator_PC.Dtos;
 using Configurator_PC.Interfaces;
 using Configurator_PC.Models;
+using Configurator_PC.Profiles;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Threading.Tasks;
 namespace Configurator_PC.Controllers
 {
@@ -44,7 +46,19 @@ namespace Configurator_PC.Controllers
             return Ok(component);
         }
 
-       
+        [HttpGet("Parameters")]
+        public async Task<IActionResult> GetMotherboards()
+        {
+            var components = _componentRepository.GetComponents();
+            
+            var dynamicDtos = components
+            .Select(ComponentManualMapper.ConvertToDynamicDto)
+            .ToList();
 
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            return Ok(components);
+        }
     }   
 }

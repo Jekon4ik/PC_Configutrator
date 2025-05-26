@@ -1,4 +1,5 @@
-﻿using Configurator_PC.Models;
+﻿using Configurator_PC.Dtos;
+using Configurator_PC.Models;
 
 namespace Configurator_PC.Interfaces
 {
@@ -7,6 +8,8 @@ namespace Configurator_PC.Interfaces
         ICollection<Component> GetComponents();
         Component GetComponent(int id);
         Component GetComponent(string name);
+        Task<ICollection<MotherboardDto>> GetMotherboardsAsync();
+        Task<ICollection<DynamicComponentDto>> GetDynamicComponents(int componentTypeId);
         bool ComponentExist(int id);
 
     }

@@ -3,6 +3,7 @@ using Configurator_PC.Data;
 using Configurator_PC.Dtos;
 using Configurator_PC.Interfaces;
 using Configurator_PC.Models;
+using Configurator_PC.Profiles;
 using Configurator_PC.Repository;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -61,12 +62,16 @@ namespace Configurator_PC.Controllers
         [HttpGet("{configurationId}/SuitableComponentsByType/{typeId}")]
         public IActionResult GetSuitableComponentsByType(int configurationId, int typeId)
         {
-            var components = _mapper.Map<List<ComponentDto>>(_configurationRepository
-                .GetSuitableComponentsByType(configurationId, typeId));
+            var components = _configurationRepository.GetSuitableComponentsByType(configurationId, typeId);
+
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            return Ok(components);
+            var dynamicDtos = components
+                .Select(ComponentManualMapper.ConvertToDynamicDto)
+                .ToList();
+
+            return Ok(dynamicDtos);
         }
 
         [HttpPost("{configurationId}/add-component/{componentId}")]

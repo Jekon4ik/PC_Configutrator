@@ -42,6 +42,7 @@ namespace Configurator_PC.Controllers
 
             return Ok(componentType);
         }
+        /*
         [HttpGet("Components/{componentTypeId}")]
         public IActionResult GetComponentByTypeId(int componentTypeId)
         {
@@ -52,5 +53,6 @@ namespace Configurator_PC.Controllers
 
             return Ok(components);
         }
+        */
     }
 }
