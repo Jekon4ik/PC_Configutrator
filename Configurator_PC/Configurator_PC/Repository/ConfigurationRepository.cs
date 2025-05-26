@@ -116,6 +116,7 @@ namespace Configurator_PC.Repository
                 return _dbContext.Components
                     .Where(c => c.TypeId == typeId)
                     .Include(c => c.Parameters)
+                        .ThenInclude(p => p.ParameterName)
                     .ToList();
             }
 
